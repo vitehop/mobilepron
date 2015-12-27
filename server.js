@@ -69,19 +69,19 @@ router.use(function(req, res, next) {
     next(); // nos aseguramos de que esto se ejecuta pero sigue buscando rutas a continuación
 });
 
-// Ruta: /api/videos
-router.route('/videos')
+// Ruta: /api/videos ***************************************************************************************************
+router.route('/videos/:page')
   // /api/cards GET
   .get(function(req,res){
-
     var request = require('request');
-    console.log("Sending the request...")
-    request('http://www.pornhub.com/webmasters/search?id=44bc40f3bc04f65b7a35&search=hard&tags[]=Teen&thumbsize=medium', function (error, response, body) {
+    var page = req.params.page;
+    request('http://www.pornhub.com/webmasters/search?tags[]=Teen&thumbsize=medium&page=' + page, function (error, response, body) {
       if (!error && response.statusCode == 200) {
-        console.log(body) // Show the received data
         res.json(body)
         }
-
+      else {
+        console.log(body)
+      }
     });
   });
 
