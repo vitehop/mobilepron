@@ -20,13 +20,13 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
+var schedule = require('node-schedule');
 
 var jwt 		 = require('express-jwt');
 var jsonwebtoken = require('jsonwebtoken');
 var secret		 = require('./config/secret');
 
 var util 		 = require('util'); // para hacer util.inspect(Obj) y poder ver todos sus metodos/propiedades
-
 
 // call the Mongoose models
 var Card = require('./models/cards');
@@ -44,6 +44,53 @@ mongoose.connect('mongodb://lorenzolamas:lorenzolamas@ds037145.mongolab.com:3714
 
 var port = process.env.PORT || 8080; 		// set our port
 app.use(express.static(__dirname + '/public'));	// Publicamos bajo el server la carpeta /public
+
+
+// ------------------------------------------------------------------------------------------
+// ***********************************+** CRON TASKS ****************************************
+// ------------------------------------------------------------------------------------------
+
+// Executing each minute
+// var j = schedule.scheduleJob('*/1 * * * *', function(){
+
+	// Pornhub fetch
+	var request = require('request');
+    request('http://www.youporn.com/api/webmasters/search?tags[]=Teen,amateur&thumbsize=medium&ordering=mostviewed&period=monthly', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+
+         var data = JSON.parse(body);
+         //console.log(data);
+
+         data.video.forEach(function (video, index){
+	      	var thisvideo = new Video();
+	      	thisvideo.link = video.url;
+	      	thisvideo.title = video.title;
+	      	thisvideo.categories = video.categories;
+	      	thisvideo.thumbnail_default = video.default_thumb;
+	      	thisvideo.thumbnails = video.thumbs;
+	      	thisvideo.views = video.views;
+	      	thisvideo.rating = video.rating;
+	      	thisvideo.ratings = video.ratings;
+	      	thisvideo.tags = video.tags;
+	      	thisvideo.segment = video.segment;
+	      	thisvideo.duration = video.duration;
+	      	thisvideo.source = "Pornhub"
+	      	thisvideo.source_id = video.video_id;
+
+	      	console.log(thisvideo.title + " | Views: " + thisvideo.views);
+		});
+	}
+        
+    else {
+        console.log(body)
+    }
+    });
+
+// });
+
+// ------------------------------------------------------------------------------------------
+// ******************************************************************************************
+// ------------------------------------------------------------------------------------------
 
 
 
@@ -73,22 +120,18 @@ router.use(function(req, res, next) {
 router.route('/videos/:page')
   // /api/cards GET
   .get(function(req,res){
-    var request = require('request');
-    var page = req.params.page;
-    request('http://www.pornhub.com/webmasters/search?tags[]=Teen&thumbsize=medium&page=' + page, function (error, response, body) {
-      if (!error && response.statusCode == 200) {
-        res.json(body)
-        }
-      else {
-        console.log(body)
-      }
-    });
+        var page = req.params.page;
+
   });
 
 
-// ------------------------------------------------------------------------------------------
-// ******************************************************************************************
-// ------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
 
 
 // ---------------------------------------
